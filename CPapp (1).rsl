@@ -1,0 +1,99 @@
+/* The EV4EU-EA is a mater´s thesis belonging to the EV4EU project, that has the end goal of increasing the adoptiong of
+ * electrical vehicles through the proposition of new business models and development of new products and services.
+ *
+ *  In order to support the proposed business models in the master´s thesis, three main systems are needed: 
+ *  the Charging Point, EMS and Aggregator systems. This specificaion has the objective of describing the
+ *  requirements of these systems, mainly focusing on its Data Entities and Use Cases
+ *
+ *  Defined with the ITLingo RSL v.2020 Language  
+ * 
+ *  Author: Francisco Pavao
+ *  Supervisers: Prof. Dr. Alberto Rodrigues da Silva
+ *               Prof. Dr. Hugo Gabriel Vicente Morais 
+ * 
+ *  Created Date: 2023/May
+ *  Last Update:  2023/June
+ */ 	
+  
+
+Package EV4EU_EA
+
+Import EV4EU_EA_Libs.Common.*
+
+System CPApp "CP-App" : Application [ description "CP-App is responsible for interacting with the user while the EV 
+  charging process occurs, and allows the choice of which V2X option the EV user wants to opt for"
+]
+
+/*************************************************************** Actors ***********************************************************************************/
+Actor as_CPSystem "Charging Point System": ExternalSystem [description "CPSystem is responsible for the backend operation of the CP app"]
+Actor aS_OperationService "OperationService" : ExternalSystem [description "OperationService tracks the energy transcaction within an ecosystem"]
+
+/************************************************************* Data entities ******************************************************************************/
+DataEntity e_Operation "Operation" : Transaction [  
+  attribute Id "Id" : Integer [constraints (PrimaryKey)]
+  attribute CustomerId "CustomerId" : Integer [constraints (NotNull ForeignKey (e_Customer))]
+  attribute StartTime "StartTime" : Date
+  attribute EndTime "EndTime" : Date
+  attribute OperationTyp "OperationType" : DataEnumeration OperationType
+  description "Operations"]  
+
+DataEntity e_Customer "Customer" : Master [  
+  attribute Id "Id" : Integer [constraints (PrimaryKey)]
+  attribute Name "Name" : String(30)
+  description "Customers"]  
+
+DataEnumeration OperationType values (Charge,Discharge,Save)
+
+
+/*************************************************************** Use cases ********************************************************************************/
+UseCase uc_1_ConfigureCP "Configure Charging Point" : EntitiesManage [
+    primaryActor aU_CPO 
+    dataEntity e_CPSetup
+    actions aConfigure
+]
+UseCase uc_2_IntegrateCPWithEMS "IntegrateCPWithEMS": EntitiesManage [
+    primaryActor aU_CPO supportingActors aU_EMSAdmin
+    dataEntity e_EMSetup
+    actions aIntegrateEMS
+    extensionPoints xp_Notify
+]
+UseCase uc_3_NotifyEMS "NotifyEMS": EntitiesInteropSendMessage [
+    primaryActor as_CPSystem
+    dataEntity e_EMSetup    
+    actions aNotify
+    extends uc_2_IntegrateCPWithEMS onExtensionPoint xp_Notify
+]
+UseCase uc_4_AuthenticateUser "AuthenticateUser": EntityOther [
+    primaryActor as_EMSystem
+    dataEntity e_Customer
+    actions aAuthenticate
+]
+UseCase uc_5_RealizeOperation "RealizeOperation" : EntityCreate [
+    primaryActor aU_Customer
+    dataEntity e_Operation
+    actions aOperate
+    extensionPoints xp_Charge, xp_Discharge
+]
+UseCase uc_6_ChargeEV "ChargeEV": EntityOther [
+    primaryActor aU_Customer
+    dataEntity e_Operation
+    actions aCharge
+    extends uc_5_RealizeOperation onExtensionPoint xp_Charge
+]
+UseCase uc_7_DischargeEV "DischargeEV": EntityOther [
+    primaryActor aU_Customer
+    dataEntity e_Operation
+    actions aDischarge
+    extends uc_5_RealizeOperation onExtensionPoint xp_Discharge
+
+]
+UseCase uc_8_SaveOperation "SaveOperation": EntityUpdate [
+    primaryActor aU_Customer
+    dataEntity e_Operation
+    actions aSave
+]
+UseCase uc_9_MonitorOperationList "MonitorOperationList": EntityDashboard [
+    primaryActor aU_Customer supportingActors aS_OperationService
+    dataEntity e_Customer
+    actions aMonitor
+]

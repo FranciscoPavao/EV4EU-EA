@@ -1,0 +1,118 @@
+/* The EV4EU-EA is a mater´s thesis belonging to the EV4EU project, that has the end goal of increasing the adoptiong of
+ * electrical vehicles through the proposition of new business models and development of new products and services.
+ *
+ *  In order to support the proposed business models in the master´s thesis, three main systems are needed: 
+ *  the Charging Point, EMS and Aggregator systems. This specificaion has the objective of describing the
+ *  requirements of these systems, mainly focusing on its Data Entities and Use Cases
+ *
+ *  Defined with the ITLingo RSL v.2020 Language  
+ * 
+ *  Author: Francisco Pavao
+ *  Supervisers: Prof. Dr. Alberto Rodrigues da Silva
+ *               Prof. Dr. Hugo Gabriel Vicente Morais 
+ * 
+ *  Created Date: 2023/May
+ *  Last Update:  2023/June
+ */ 	
+  
+
+Package EV4EU_EA
+
+Import EV4EU_EA_Libs.Common.*
+
+System AggregatorApp "Aggregator Application" : Application [ 
+    description "AggregatorApp is responsible for serving two sides: the market and demand side of the EV domain. The app allows the offer of flexibility services to the market side and financial rewards to the demand side."
+]
+
+/*************************************************************** Actors ***********************************************************************************/
+Actor aU_AggregatorAdmin "Aggregator Admin" : User [description "AggregatorAdmin manages the funcionalities of the Aggregator App"]
+Actor aU_EMSOperator "Enery Management System Operator" : User [description "EMSOperator manages the integration between the EMS and the Aggregator system"]
+Actor aU_V2XManager "V2X Manager" : User [description "V2XManager serves as a middleman between the Aggregator and the User"]
+Actor aU_User "User" : User [description "User allows the pooling of electric assets in a ecosystem"]
+Actor aU_AggregatorSystem "Aggregator System" : User [description "AggregatorSystem is responsible for pooling the electric assets of an ecosystem"]
+Actor aU_DSO_TSO "Distribution System Operator or Transmission System Operator" : User [description "DSO_TSO are provided flexibility by the AggregatorAdmin"]
+
+
+/************************************************************* Data entities ******************************************************************************/
+
+DataEntity e_AggregatorSystemSetup "AggregatorSysmSetup" : Parameter [  
+  attribute Ip "Ip" : Integer [constraints (PrimaryKey)]
+  attribute Address "Address" : String(30) 
+  attribute Protocol "Protocol" : String(30)
+  attribute SecurityKey "SecurityKey" : Binary
+  description "Aggregator System Setup"]  
+
+DataEntity e_Pooling "Pooling" : Parameter [  
+  attribute Id "Id" : Integer [constraints (PrimaryKey)]
+  attribute AggregatorId "Aggregator Id" : Integer [constraints (NotNull ForeignKey (e_AggregatorSystemSetup))]
+  attribute EcosystemId "Ecosystem Id" : Integer [constraints (NotNull ForeignKey (e_User))]
+  description "Pooling"]  
+
+
+DataEntity e_User "User" : Master [  
+  attribute Id "Id" : Integer [constraints (PrimaryKey)]
+  attribute EcosystemId "EcosystemId" : Integer
+  attribute Name "Name" : String(30)
+  description "Users"] 
+
+DataEntity e_Flexibility "Flexibility" : Parameter [  
+  attribute Id "Id" : Integer [constraints (PrimaryKey)]
+  attribute Source "Source" : String
+  attribute Destination "Destination" : String
+  attribute Value "Value" : Integer
+  attribute TimeStamp "TimeStamp" : Date
+  description "Flexibility"] 
+
+DataEntity e_FinancialReward "FinancialReward" : Master [  
+  attribute Id "Id" : Integer [constraints (PrimaryKey)]
+  attribute UserId "UserId" : Integer [constraints (NotNull ForeignKey (e_User))]
+  attribute Value "Value" : Integer
+  description "Financial Rewards"] 
+
+DataEntity e_DSO_TSO "Distribution System Operator or Transmission System Operator" : Master [  
+  attribute Id "Id" : Integer [constraints (PrimaryKey)]
+  attribute EnergyRequest "EnergyRequests" : Integer
+  description "EV Users"]   
+
+DataEnumeration EcosystemType values (Home,Building,Company)
+
+/*************************************************************** Use cases ********************************************************************************/
+
+UseCase uc_1_IntegrateAggregatorWithEMS "IntegrateAggregatorWithEMS" : EntityCreate [ 
+    primaryActor aU_AggregatorAdmin supportingActors aU_EMSOperator
+    dataEntity e_AggregatorSystemSetup
+    actions aIntegrateAgg
+]
+
+UseCase uc_2_DelegateManagement "DelegateManagement" : EntitiesManage [
+    primaryActor aU_AggregatorAdmin supportingActors aU_V2XManager
+    actions aTrackFlexibility
+]
+
+UseCase uc_3_PoolElectricAssets "PoolElectricAssets" : EntitiesManage [ 
+    primaryActor aU_AggregatorAdmin 
+    dataEntity e_Pooling
+    actions aPool
+    extensionPoints xp_Reward,xp_V2X,xp_Flex
+]
+        
+ UseCase uc_4_ProvideFinancialRewards "ProvideFinancialRewards" : EntitiesManage [ 
+    primaryActor aU_AggregatorAdmin supportingActors aU_User
+    dataEntity e_FinancialReward
+    actions aProvideReward
+    extends uc_3_PoolElectricAssets onExtensionPoint xp_Reward
+]
+
+ UseCase uc_5_ProvideV2XServices "ProvideV2XServices" : EntitiesManage [ 
+    primaryActor aU_AggregatorAdmin supportingActors aU_User
+    dataEntity e_User
+    extends uc_3_PoolElectricAssets onExtensionPoint xp_V2X
+]
+
+ UseCase uc_6_ProvideFlexibility "ProvideFlexibility" : EntitiesManage [ 
+    primaryActor aU_AggregatorAdmin supportingActors aU_DSO_TSO
+    dataEntity e_Flexibility
+    actions aProvideFlex
+    extends uc_3_PoolElectricAssets onExtensionPoint xp_Flex
+]
+

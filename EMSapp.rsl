@@ -1,0 +1,86 @@
+/* The EV4EU-EA is a mater´s thesis belonging to the EV4EU project, that has the end goal of increasing the adoptiong of
+ * electrical vehicles through the proposition of new business models and development of new products and services.
+ *
+ *  In order to support the proposed business models in the master´s thesis, three main systems are needed: 
+ *  the Charging Point, EMS and Aggregator systems. This specificaion has the objective of describing the
+ *  requirements of these systems, mainly focusing on its Data Entities and Use Cases
+ *
+ *  Defined with the ITLingo RSL v.2020 Language  
+ * 
+ *  Author: Francisco Pavao
+ *  Supervisers: Prof. Dr. Alberto Rodrigues da Silva
+ *               Prof. Dr. Hugo Gabriel Vicente Morais 
+ * 
+ *  Created Date: 2023/May
+ *  Last Update:  2023/June
+ */ 	
+  
+Package EV4EU_EA
+
+Import EV4EU_EA_Libs.Common.*
+
+System EMSapp "EMSapp" : Application [ description "EMSapp is responsible for connecting the CPapp to the AGGapp.
+It also is responsible for keeping operation and user authentication data. This specification focuses on the EMS 
+system´s pointof view. "
+]
+
+/*************************************************************** Actors ***********************************************************************************/
+Actor aU_CustomerAdmin "CustomerAdmin" : User [description "CustomerAdmin manages the EMS customers"]
+
+/************************************************************* Data entities ******************************************************************************/
+
+DataEntity e_Operation "Operation" : Transaction [  
+  attribute CustomerId "CustomerId" : Integer [constraints (PrimaryKey)]
+  attribute StartTime "StartTime" : Date
+  attribute EndTime "EndTime" : Date
+  attribute OperationTyp "Type" : DataEnumeration OperationType
+  description "Operations"] 
+
+DataEntity e_CustomerAdmin "CustomerAdmin" : Reference [
+  attribute Id "Id" : Integer [constraints (PrimaryKey)]
+  attribute Id "EcosystemId" : Integer
+  description "CustomerAdmin"]
+
+DataEnumeration OperationType values (Authenticate,Analyze,Optimize)
+
+/*************************************************************** Use cases ********************************************************************************/
+
+UseCase uc_1_IntegrateEMSWithCP "IntegrateEMSWithCP" : EntitiesManage [
+    primaryActor aU_CPO supportingActors aU_EMSAdmin
+    dataEntity e_EMSetup
+    actions aIntegrateEMS
+    extensionPoints xp_Activate
+]
+
+UseCase uc_2_ActivateService "ActivateService" : EntitiesManage [ 
+    primaryActor aU_CPO supportingActors aU_EMSAdmin
+    dataEntity e_Operation
+    actions aActivate
+    extends uc_1_IntegrateEMSWithCP onExtensionPoint xp_Activate
+
+]
+
+UseCase uc_3_DelegateManagement "DelegateManagement" : EntitiesManage [
+    primaryActor aU_EMSAdmin supportingActors aU_CustomerAdmin
+    dataEntity e_CustomerAdmin
+    actions aDelegate
+]
+
+UseCase uc_4_AuthenticateUser "AuthenticateUser" : EntitiesManage [
+    primaryActor as_EMSystem
+    dataEntity e_Operation
+    actions aAuthenticate
+]
+
+UseCase uc_5_OptimizeEnergyConsumption "OptimizeEnergyConsumption" : EntitiesManage [
+    primaryActor aU_EMSAdmin
+    dataEntity e_EnergyConsumption
+    actions aOptimize
+]
+
+UseCase uc_6_AnalyzeEnergyData "AnalyzeEnergyData" : EntitiesManage [
+    primaryActor aU_EMSAdmin
+    dataEntity e_EnergyConsumption
+    actions aAnalyzeData
+]
+

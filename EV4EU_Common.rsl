@@ -1,0 +1,141 @@
+/* The EV4EU-EA is a mater´s thesis belonging to the EV4EU project, that has the end goal of increasing the adoptiong of
+ * electrical vehicles through the proposition of new business models and development of new products and services.
+ *
+ *  In order to support the proposed business models in the master´s thesis, three main systems are needed: 
+ *  the Charging Point, EMS and Aggregator systems. This specificaion has the objective of describing the
+ *  requirements of these systems, mainly focusing on its Data Entities and Use Cases
+ *
+ *  Defined with the ITLingo RSL v.2020 Language  
+ * 
+ *  Author: Francisco Pavao
+ *  Supervisers: Prof. Dr. Alberto Rodrigues da Silva
+ *               Prof. Dr. Hugo Gabriel Vicente Morais 
+ * 
+ *  Created Date: 2023/May
+ *  Last Update:  2023/June
+ */ 
+
+
+Package EV4EU_EA_Libs
+
+System Common "EV4EU Common" : Application 
+
+
+/************************************************************ Terms ******************************************************************************/
+Term t_EV4EU "Electric Vehicles Management for carbon neutrality in Europe" : Noun [description " European project focused on increasing the adoption of EVs"]
+Term t_EV4EU_EA "Enterprise Architecture for Electric Vehicle Ecosystems" : Noun [description "Thesis project focused on modeling the Home, Building and Company ecosystems"]
+Term t_Aggregator "Aggregator" : Noun [description "Entity responsible for pooling its users electric assets using them to offer flexibility to DSOs/TSOs"]
+Term t_EMS "Energy Management Sytem" : Noun [description "Component with physical and sofware characterics that manages the energy use of an ecosystem"]
+Term t_CP "Charging Point" : Noun [description "Device responsible for connecting the EV to the energy grid"]
+Term t_EV "Electric Vehicle" : Noun [description "Vehicle that relies on an electric motor"]
+Term t_V2X "Vechicle-to-everything" : Noun [description "Technology that enables the energy in the grid to flow bidirecionally"]
+Term t_CPO "Charging Point Operator" : Noun [description "Entity responsible for the maintenance of a CP"]
+Term t_DSO "Distribution System Operator" : Noun [description "Entity responsible for managing the distribution section of the electric grid"]
+Term t_TSO "Transmission System Operator" : Noun [description "Entity responsible for managing the transmission section of the electric grid"]
+
+/************************************************************* Actions ******************************************************************************/
+
+//Common
+ActionType aAuthenticate "Authenticate" [description "Authenticate a user in the EMS system"]
+ActionType aIntegrateEMS "IntegrateEMS" [description "Connect the CP with the EMS and vice-versa"]
+ActionType aIntegrateAgg "IntegrateAgg" [description "Connect the EMS with the Aggregator system and vice-versa"]
+
+//Charging Point
+ActionType aConfigure "Configure" [description "Configure CP "]
+ActionType aNotify "Notify" [description "Send sucess message to EMS system"]
+ActionType aOperate "Operate" [description "Choose V2X operation"]
+ActionType aCharge "Charge" [description "Charge EV"]
+ActionType aDischarge "Discharge" [description "Discharge EV and feed the grid"]
+ActionType aSave "Save" [description "CP system saves the operations executed"]
+ActionType aMonitor "Monitor" [description "Customer can track the operations executed"]
+
+//EMS Customer
+ActionType aManage "Manage" [description "Manage EMS services within an ecosystem"]
+ActionType aDefine "Define" [description "Define goals for the EMS"]
+ActionType aSetupObj "SetupObjective" [description "Define objectives for the EMS"]
+ActionType aSetupTime "SetupTime" [description "Define timeline for the EMS goals"]
+ActionType aVerifyConsumption "VerifyConsumption" [description "Track energy consumption of an ecosystem"]
+ActionType aVerifySavings "VerifySavings" [description "Track energy savings of an ecosystem"]
+
+//EMS System
+ActionType aConnectGrid "ConnectGrid" [description "Connected EMS with electric grid"]
+ActionType aActivate "Activate" [description "Activate EMS services to the ecosystem"]
+ActionType aDelegate "Delegate" [description "Delegate EMS management)"]
+ActionType aOptimize "Optimize" [description "Optimize energy consumption and costs of an ecosystem"]
+ActionType aAnalyzeData "AnalyzeData" [description "Analyze energy consumption data in order to optimize it"]
+
+//Aggregator
+ActionType aTrackFlexibility "TrackFlexibility" [description "Allow users to track how much energy they have offered"]
+ActionType aPool "Pool" [description "Pool electric assets from users"]
+ActionType aProvideReward "ProvideReward" [description "Provides financial rewards to users based on the energy provided"]
+ActionType aProvideFlex "ProvideFlexibility" [description "Provide flexibility to market side"]
+ActionType aProvideV2XServices "ProvideV2XServices" [description "Provide V2X services to customers"]
+
+/************************************************************* Stakeholders ******************************************************************************/
+
+Stakeholder stk_EVUser "EV User" : Person : Person_User [description "User from the point of view of the Aggregator app"]
+Stakeholder stk_Customer "Customer" : Person : Person_User [description "User from the point of view of the CP app"]
+Stakeholder stk_CustomerAd "Customer Admin" : Person : Person_User [description "Responsible for managing the EMS actitivies of a customer"]
+Stakeholder stk_EndUser "End User" : Person : Person_User [description "User from the point of view of the EMS app"]
+Stakeholder stk_CPO "Charging Point Operator" : Person : Person_User [description "(See Terms)"]
+Stakeholder stk_AggregatorAd "Aggregator Admin" : Person : Person_User  [description "Responsible for managing the Aggregator app"] 
+Stakeholder stk_V2XManager "V2X Manager" : Person : Person_User  [description "Responsible for managing the V2X services of an ecosystem"]  
+Stakeholder stk_DSO "Distribution System Operator" : Person : Person_User  [description "(See Terms)"]   
+Stakeholder stk_TSO "Transmission System Operator" : Person : Person_User  [description "(See Terms)"]
+
+
+/*************************************************************** Actors ***********************************************************************************/
+
+Actor aU_CPO "Charging Point Operator" : User [description "CPO is responsible for the installation and maintence of a CP"]
+Actor aU_EMSAdmin "Energy Management System Admin" : User [description "EMSAdmin manages the integration between the CP and the EMS"]
+Actor as_EMSystem "Energy Management System": ExternalSystem [description "EMSystem is responsible for the backend operation of the EMS app"]
+Actor aU_Customer "Customer" : User [description "Customer connects EV to CP"]
+
+
+/************************************************************* Data entities ******************************************************************************/
+
+//Common
+DataEntity e_CPSetup "Charging Point Setup" : Parameter [  
+  attribute Ip "Ip" : Integer [constraints (PrimaryKey)]
+  attribute Address "Address" : String(30) 
+  attribute Protocol "Protocol" : String(30)
+  attribute SecurityKey "SecurityKey" : Binary
+  description "Charging Point Setup"] 
+
+DataEntity e_EMSetup "Energy Management System Setup" : Parameter [  
+  attribute Ip "Ip" : Integer [constraints (PrimaryKey)]
+  attribute Address "Address" : String(30) 
+  attribute Protocol "Protocol" : String(30)
+  attribute SecurityKey "SecurityKey" : Binary
+  description "Energy Management System Setup"] 
+
+DataEntity e_Ecosystem "Ecosystem" : Master [  
+  attribute Id "Id" : Integer [constraints (PrimaryKey)]
+  attribute EcosystemTyp "OperationType" : DataEnumeration EcosystemType
+  description "Pooling"] 
+
+DataEntity e_Customer "Customer" : Master [  
+  attribute Id "Id" : Integer [constraints (PrimaryKey)]
+  attribute Name "Name" : String(30)
+  description "Customers"]  
+
+DataEnumeration EcosystemType values (Home,Building,Company)
+  
+//EMS
+DataEntity e_EnergyGoal "EnergyGoal" : Document [  
+  attribute Id "Id" : Integer [constraints (PrimaryKey)]
+  attribute KPI "KPI" : String
+  description "EnergyGoal"]
+
+DataEntity e_Timeline "Timeline" : Document[  
+  attribute StartDate "StartDate" : Date
+  attribute EndDate "EndDate" : Date
+  description "Timeline"]
+
+DataEntity e_EnergyConsumption "EnergyConsumption" : Master [  
+  attribute Id "Id" : Integer [constraints (PrimaryKey)]
+  attribute EcosystemId "EcosystemId" : Integer 
+  attribute TimeStamp "TimeStamp" : Date
+  attribute Value "Value" : Integer
+  description "EnergyConsumption"] 
+

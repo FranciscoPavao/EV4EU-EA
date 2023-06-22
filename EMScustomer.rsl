@@ -1,0 +1,71 @@
+/* The EV4EU-EA is a mater´s thesis belonging to the EV4EU project, that has the end goal of increasing the adoptiong of
+ * electrical vehicles through the proposition of new business models and development of new products and services.
+ *
+ *  In order to support the proposed business models in the master´s thesis, three main systems are needed: 
+ *  the Charging Point, EMS and Aggregator systems. This specificaion has the objective of describing the
+ *  requirements of these systems, mainly focusing on its Data Entities and Use Cases
+ *
+ *  Defined with the ITLingo RSL v.2020 Language  
+ * 
+ *  Author: Francisco Pavao
+ *  Supervisers: Prof. Dr. Alberto Rodrigues da Silva
+ *               Prof. Dr. Hugo Gabriel Vicente Morais 
+ * 
+ *  Created Date: 2023/May
+ *  Last Update:  2023/June
+ */ 	
+  	
+  
+
+Package EV4EU_EA
+
+Import EV4EU_EA_Libs.Common.*
+
+System EMSCustomer "EMSCustomer" : Application [ description "EMSapp is responsible for connecting the CPapp to the AGGapp.
+It also is responsible for keeping operation and user authentication data. This specification focuses on the EMS 
+customers pointof view. "
+]
+
+/************************************************************* Actors ******************************************************************************/
+Actor aU_CustomerAdmin "CustomerAdmin" : User [description "Customer Admin manages the EMS usage of customers"]
+Actor aU_Customer "Customer" : User [description "Customer uses electric assets"]
+
+/************************************************************* Use Cases ******************************************************************************/
+UseCase uc_1_ManageEMS "ManageEMS": EntitiesManage [
+    primaryActor aU_CustomerAdmin 
+    actions aManage
+]
+
+UseCase uc_2_DefineEnergyGoals "DefineEnergyGoals" : EntityCreate [
+    primaryActor aU_CustomerAdmin 
+    dataEntity e_EnergyGoal
+    actions aDefine
+    extensionPoints xp_Objective,xp_Timeline
+]
+
+ UseCase uc_3_SetupObjectives "SetupObjectives" : EntityCreate [ 
+    primaryActor aU_CustomerAdmin 
+    dataEntity e_EnergyGoal
+    actions aSetupObj
+    extends uc_2_DefineEnergyGoals onExtensionPoint xp_Objective
+ ]
+        
+ UseCase uc_4_SetupTimepline "SetupTimeline" : EntityCreate [ 
+    primaryActor aU_CustomerAdmin 
+    dataEntity e_Timeline
+    actions aSetupTime
+    extends uc_2_DefineEnergyGoals onExtensionPoint xp_Timeline
+ ]
+
+ UseCase uc_5_VerifyEnergyConsumption "VerifyEnergyConsumption" : EntityRead [
+    primaryActor aU_Customer
+    dataEntity e_EnergyConsumption
+    actions aVerifyConsumption
+ ]
+
+ UseCase uc_6_VerifyEnergySavings "VerifyEnergySavings" : EntityRead [ 
+    primaryActor aU_Customer
+    dataEntity e_EnergyConsumption
+    actions aVerifySavings
+ ]
+
